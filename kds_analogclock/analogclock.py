@@ -12,26 +12,49 @@ import busio
 import board
 import displayio
 #import framebufferio
-import gc
+#import gc
 #https://docs.circuitpython.org/projects/display-shapes/en/latest/index.html
 from adafruit_display_shapes.circle import Circle
 from adafruit_display_shapes.line import Line
 from digitalio import DigitalInOut
-import adafruit_requests as requests
+
 import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 from adafruit_esp32spi import adafruit_esp32spi
 
+if board.board_id == "adafruit_feather_huzzah32":
+    import adafruit_displayio_ssd1306
+    import os
+    import wifi
+    import ipaddress
+    import ssl
+    import socketpool
+    import adafruit_requests
+    from dotenv import load_dotenv
+    try:
+        import rtc
+    except ImportError:
+        rtc = None
+    #stolen from portal base
+    TIME_SERVICE = (
+      "https://io.adafruit.com/api/v2/%s/integrations/time/strftime?x-aio-key=%s"
+    )
+    # our strftime is %Y-%m-%d %H:%M:%S.%L %j %u %z %Z see http://strftime.net/ for decoding details
+    # See https://apidock.com/ruby/DateTime/strftime for full options
+    TIME_SERVICE_FORMAT = "%Y-%m-%d %H:%M:%S.%L %j %u %z %Z"
+    LOCALFILE = "local.txt"
+
+if board.board_id == "adafruit_funhouse":
+    from adafruit_funhouse import FunHouse
 if board.board_id == "pyportal":
     #https://docs.circuitpython.org/projects/matrixportal/en/latest/
     from adafruit_pyportal import PyPortal
-    from adafruit_pyportal.network import Network
+    #from adafruit_pyportal.network import Network
 if board.board_id == "adafruit_magtag_2.9_grayscale":
     #print("Importing magtag library")
     #https://docs.circuitpython.org/projects/magtag/en/latest/index.html
     from adafruit_magtag.magtag import MagTag
     from adafruit_magtag.network import Network
 if board.board_id == "matrixportal_m4":
-    #import rgbmatrix
     #https://docs.circuitpython.org/projects/matrixportal/en/latest/
     from adafruit_matrixportal.matrix import Matrix
     from adafruit_matrixportal.network import Network
@@ -43,6 +66,7 @@ class AnalogClock:
         ):
         #print("Called the init function for my AnalogClock class")
 
+        #Some 'reasonable' defaults
         self.WHITE  = 0xffffff
         self.YELLOW = 0xffff00
         self.BLUE   = 0x0000ff
@@ -73,7 +97,7 @@ class AnalogClock:
         self.g1 = None
         self.tg1 = None
 
-        if board.board_id == "pyportal" or board.board_id == "matrixportal_m4":
+        if board.board_id == "pyportal" or board.board_id == "matrixportal_m4" or board.board_id == "adafruit_funhouse":
             self.circleColor = self.WHITE
             self.centerColor = self.WHITE
             self.tickColor = self.RED
@@ -89,6 +113,9 @@ class AnalogClock:
             self.backColor = self.BLACK
             self.portal = Matrix()
             self.display = self.portal.display
+        if board.board_id == "adafruit_funhouse":
+            self.portal = FunHouse()
+            self.display = self.portal.display
         if board.board_id == "adafruit_magtag_2.9_grayscale":
             self.circleColor = self.BLACK
             self.centerColor = self.BLACK
@@ -100,17 +127,25 @@ class AnalogClock:
             self.circleFillColor = self.WHITE
             self.portal = MagTag()
             self.display = self.portal.display
-
-        self.WIDTH = self.display.width
-        self.HEIGHT = self.display.height
-        self.centerX = int((self.WIDTH-1)/2)
-        self.centerY = int((self.HEIGHT-1)/2)
-        self.radius = min(self.centerX, self.centerY)
+        if board.board_id == "adafruit_feather_huzzah32":
+            self.circleColor = self.WHITE
+            self.centerColor = self.WHITE
+            self.tickColor = self.WHITE
+            self.secColor = self.WHITE
+            self.minColor = self.WHITE
+            self.hourColor = self.WHITE
+            self.backColor = self.BLACK
+            self.circleFillColor = self.BLACK
+            displayio.release_displays()
+            i2c = board.I2C()
+            display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
+            self.display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=128, height=32)
 
         self.pre_calc()
 
         self.drawStatic(self.display)
         self.drawClock(self.display)
+
         if board.board_id != "adafruit_magtag_2.9_grayscale":
             #auto_refresh causes the screen to flicker and
             #makes the display update slow
@@ -128,7 +163,7 @@ class AnalogClock:
         print("Hello from a hello function")
 
     '''
-    Precalculate some needed paramaters
+    Precalculate some needed parameters
 
     '''
     def pre_calc(self):
@@ -145,6 +180,13 @@ class AnalogClock:
             self.pre_cos[step] = math.cos(angle)
             self.pre_sin[step] = math.sin(angle)
             step += 1
+
+        self.WIDTH   = self.display.width
+        self.HEIGHT  = self.display.height
+        self.centerX = int((self.WIDTH-1)/2)
+        self.centerY = int((self.HEIGHT-1)/2)
+        self.radius  = min(self.centerX, self.centerY)
+
 
     '''
     Draw the big clock circle
@@ -270,14 +312,15 @@ class AnalogClock:
       if curr_time.tm_hour != self.HOUR:
           self.HOURS_PASSED += 1
       if self.HOURS_PASSED > 12:
+          #Update the network time
           self.connectNetwork()
           self.HOURS_PASSED = 0
 
       #Change: Update the update the hour
-      #when curr_time.tm_min == 12, 24, 36, 48
       if self.MIN != curr_time.tm_min:
         #print("Current time: %d:%d:%d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
         update_min = True
+        #when curr_time.tm_min == 12, 24, 36, 48
         if curr_time.tm_min in self.UPDATE_HOUR_MINS:
           update_hour = True
       self.HOUR = curr_time.tm_hour
@@ -285,7 +328,7 @@ class AnalogClock:
       self.SEC  = curr_time.tm_sec
       #print("Current time: %d:%d:%d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
 
-      gc.collect()
+      #gc.collect()
       self.g1.append(self.tg1)
       #print("Before drawing Free memory: " , gc.mem_free() )
       self.drawClockCircle(self.g1)
@@ -296,19 +339,29 @@ class AnalogClock:
       self.drawClockCenter(self.g1)
 
       #print("After drawing Free memory: " , gc.mem_free() )
-      display.show(self.g1)
+      self.display.show(self.g1)
       #the magtag is an eink display and cannot refresh too quickly
       if board.board_id == "adafruit_magtag_2.9_grayscale" and self.display.time_to_refresh > 0:
         time.sleep(self.display.time_to_refresh)
 
-      display.refresh()
+      self.display.refresh()
+
+
+    def url_encode(self,url):
+        """
+        A function to perform minimal URL encoding
+        """
+        url = url.replace(" ", "+")
+        url = url.replace("%", "%25")
+        url = url.replace(":", "%3A")
+        return url
 
     def connectNetwork(self):
-        if board.board_id == "pyportal":
-            print("I run special pyportal network code")
+        if board.board_id == "pyportal" or board.board_id == "adafruit_funhouse":
+            #print("I run special pyportal network code")
             self.portal.network.connect()
             self.portal.network.get_local_time()
-        if board.board_id == "adafruit_magtag_2.9_grayscale" or board.board_id == "matrixportal_m4":
+        elif board.board_id == "adafruit_magtag_2.9_grayscale" or board.board_id == "matrixportal_m4":
             self.network = Network()
             attempt = 0
             while not self.network._wifi.is_connected:
@@ -327,3 +380,50 @@ class AnalogClock:
                     print("Error updating datetime from network: ")
                     time.sleep(1)
                     continue
+        elif board.board_id == "adafruit_feather_huzzah32":
+            load_dotenv()
+            SSID = os.getenv('CIRCUITPY_WIFI_SSID')
+            WIFI_PASSWD = os.getenv('CIRCUITPY_WIFI_PASSWORD')
+            wifi.radio.connect(SSID, WIFI_PASSWD)
+
+            print("Trying to get network time")
+            pool = socketpool.SocketPool(wifi.radio)
+            requests = adafruit_requests.Session(pool, ssl.create_default_context())
+
+            aio_username = os.getenv("AIO_USERNAME")
+            aio_key = os.getenv("AIO_KEY")
+            timezone = os.getenv("TIMEZONE")
+            if timezone is None:
+                print("No timezone provided")
+                print("Getting time from IP address")
+                api_url = TIME_SERVICE % (aio_username, aio_key)
+            else:
+                print("Getting time for %s" % (timezone))
+                api_url = (TIME_SERVICE + "&tz=%s") % (aio_username, aio_key, timezone)
+
+            api_url += "&fmt=" + self.url_encode(TIME_SERVICE_FORMAT)
+
+            response = requests.get(api_url)
+
+            if response:
+                #print("Setting time")
+                times = response.text.split(" ")
+                the_date = times[0]
+                the_time = times[1]
+                year_day = int(times[2])
+                week_day = int(times[3])
+                is_dst = None  # no way to know yet
+                year, month, mday = [int(x) for x in the_date.split("-")]
+                the_time = the_time.split(".")[0]
+                hours, minutes, seconds = [int(x) for x in the_time.split(":")]
+                now = time.struct_time(
+                    (year, month, mday, hours, minutes, seconds, week_day, year_day, is_dst)
+                )
+                if rtc is not None:
+                    rtc.RTC().datetime = now
+        else:
+            #here is the next board
+            pass
+
+
+
