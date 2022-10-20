@@ -56,3 +56,4 @@ The size of the various elements is calculated based on the side of the display.
 - Clean up the connectNetwork(). The portal classes for the various boards are almost the same.
 - Bug fixes. I think I have a 12:00 display issue with the hour hand. 
 - Write a huzzah portal??
+- Pictures
