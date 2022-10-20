@@ -40,6 +40,7 @@ The following elements are always static:
 - The center clock circle
 - The tick marks around the clock
 - The background behind the clock (if used)
+
 Only the hands are regenerated when they have moved from a previous location with the hour hand updating only when it aligns with a tick mark.
 
 ### Update time
