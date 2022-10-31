@@ -21,6 +21,11 @@ from digitalio import DigitalInOut
 import adafruit_esp32spi.adafruit_esp32spi_socket as socket
 from adafruit_esp32spi import adafruit_esp32spi
 
+if board.board_id == "adafruit_macropad_rp2040":
+    from adafruit_macropad import MacroPad
+    import adafruit_pcf8523
+    import rtc
+
 if board.board_id == "adafruit_feather_huzzah32":
     import adafruit_displayio_ssd1306
     import os
@@ -87,6 +92,7 @@ class AnalogClock:
         self.network = None
         self.portal  = None
         self.UPDATE_HOUR_MINS = [ 12, 24,36,48 ]
+        self.rtc = None
 
         self.lines = []
         self.static_tics = [None] * 12
@@ -125,9 +131,10 @@ class AnalogClock:
             self.hourColor = self.BLACK
             self.backColor = self.WHITE
             self.circleFillColor = self.WHITE
+        if board.board_id == "adafruit_magtag_2.9_grayscale":
             self.portal = MagTag()
             self.display = self.portal.display
-        if board.board_id == "adafruit_feather_huzzah32":
+        if board.board_id == "adafruit_feather_huzzah32" or board.board_id == "adafruit_macropad_rp2040":
             self.circleColor = self.WHITE
             self.centerColor = self.WHITE
             self.tickColor = self.WHITE
@@ -136,6 +143,18 @@ class AnalogClock:
             self.hourColor = self.WHITE
             self.backColor = self.BLACK
             self.circleFillColor = self.BLACK
+        if board.board_id == "adafruit_macropad_rp2040":
+            #displayio.release_displays()
+            self.display = board.DISPLAY
+            #myI2C = busio.I2C(board.SCL, board.SDA)
+            #self.rtc = adafruit_pcf8523.PCF8523(myI2C)
+            #t = self.rtc.datetime
+            #print(type(t))
+            #print(t)
+            #rtc.RTC.set_time_source(self.rtc)
+
+
+        if board.board_id == "adafruit_feather_huzzah32":
             displayio.release_displays()
             i2c = board.I2C()
             display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
@@ -167,6 +186,12 @@ class AnalogClock:
 
     '''
     def pre_calc(self):
+        self.WIDTH   = self.display.width
+        self.HEIGHT  = self.display.height
+        self.centerX = int((self.WIDTH-1)/2)
+        self.centerY = int((self.HEIGHT-1)/2)
+        self.radius  = min(self.centerX, self.centerY)
+        print("Height: %d Width: %d Radius: %d" % (self.HEIGHT, self.WIDTH, self.radius))
         self.radius_50 = int(self.radius * .5)
         self.radius_75 = int(self.radius * .75)
         self.radius_75 = int(self.radius * .75)
@@ -180,13 +205,6 @@ class AnalogClock:
             self.pre_cos[step] = math.cos(angle)
             self.pre_sin[step] = math.sin(angle)
             step += 1
-
-        self.WIDTH   = self.display.width
-        self.HEIGHT  = self.display.height
-        self.centerX = int((self.WIDTH-1)/2)
-        self.centerY = int((self.HEIGHT-1)/2)
-        self.radius  = min(self.centerX, self.centerY)
-
 
     '''
     Draw the big clock circle
@@ -309,6 +327,9 @@ class AnalogClock:
           self.g1.pop()
 
       curr_time = time.localtime()
+      if self.SEC == curr_time.tm_sec:
+        return
+
       if curr_time.tm_hour != self.HOUR:
           self.HOURS_PASSED += 1
       if self.HOURS_PASSED > 12:
@@ -326,7 +347,7 @@ class AnalogClock:
       self.HOUR = curr_time.tm_hour
       self.MIN  = curr_time.tm_min
       self.SEC  = curr_time.tm_sec
-      #print("Current time: %d:%d:%d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
+      print("Current time: %d:%d:%d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
 
       #gc.collect()
       self.g1.append(self.tg1)
@@ -421,9 +442,13 @@ class AnalogClock:
                 )
                 if rtc is not None:
                     rtc.RTC().datetime = now
+        elif board.board_id == "adafruit_macropad_rp2040":
+            if self.rtc == None:
+                myI2C = busio.I2C(board.SCL, board.SDA)
+                self.rtc = adafruit_pcf8523.PCF8523(myI2C)
+            t = self.rtc.datetime
+            rtc.RTC().datetime = t
+
         else:
             #here is the next board
             pass
-
-
-
