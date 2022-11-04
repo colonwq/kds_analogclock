@@ -387,7 +387,8 @@ class AnalogClock:
             self.portal.network.connect()
             self.portal.network.get_local_time()
         elif board.board_id == "adafruit_magtag_2.9_grayscale" or board.board_id == "matrixportal_m4":
-            self.network = Network()
+            if self.network == None:
+                self.network = Network()
             attempt = 0
             while not self.network._wifi.is_connected:
                 try:
