@@ -11,11 +11,11 @@ Various Adafruit howto's, API documentation and *gasp* looking at Adafruit git r
 All mistakes are my fault.
 '''
 
-from kds_analogclock.analogclock import AnalogClock
+from macropad_analogclock.macropad_analogclock import Macropad_AnalogClock
 
 def main():
 
-  clock = AnalogClock()
+  clock = Macropad_AnalogClock()
   clock.hello()
 
   while True:
