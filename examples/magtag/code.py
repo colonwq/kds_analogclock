@@ -11,7 +11,6 @@ Various Adafruit howto's, API documentation and *gasp* looking at various Adafru
 All mistakes are my fault.
 '''
 
-#from kds_analogclock.analogclock import AnalogClock
 from magtag_analogclock.magtag_analogclock import Magtag_AnalogClock
 
 def main():
