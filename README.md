@@ -13,7 +13,7 @@ I have adopted my class to the boards around my desk as I find them. Most of the
 | [Magtag](https://www.adafruit.com/product/4800)   | Yes    | (2)(3) |
 | [Pyportal](https://www.adafruit.com/product/4116) | Yes    | (1)(3) |
 | [M4 Matrix](https://www.adafruit.com/product/4745) | Yes   | (1)(3)(9) |
-| [Feather Huzzah32](https://www.adafruit.com/product/3405)| Yes | (2)(5)(6)(11) |
+| [Feather Huzzah32](https://www.adafruit.com/product/3405)| No | (2)(5)(6)(11) |
 | [MacroPad](https://www.adafruit.com/product/5128) | Yes | (2)(10)
 | [Circuit Playground Express](https://www.adafruit.com/product/3333) | No | (7)(8) |
 
