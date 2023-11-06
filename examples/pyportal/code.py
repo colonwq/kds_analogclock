@@ -6,7 +6,6 @@ def main():
   clock.hello()
 
   while True:
-    #clock.update(wait=1)
     clock.update()
 
 if __name__ == "__main__":

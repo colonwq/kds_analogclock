@@ -26,9 +26,8 @@ class Pyportal_AnalogClock(AnalogClock):
 
     def connectNetwork(self):
         attempt = 0
-        #The Adafruit_Portabase included with CP 7.3.3 does not have
+        #The Adafruit_Portalbase included with CP 7.3.3 does not have
         #the is_connected property 
-        #while not self.portal.network.is_connected:
         while not self.portal.network._wifi.is_connected:
             try:
                 self.portal.network.connect()

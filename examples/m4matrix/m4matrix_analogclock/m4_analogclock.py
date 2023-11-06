@@ -11,6 +11,7 @@ from adafruit_matrixportal.matrixportal import MatrixPortal
 class M4M_AnalogClock(AnalogClock):
     def __init__(self):
         super().__init__()
+
         self.circleColor = self.WHITE
         self.centerColor = self.WHITE
         self.tickColor = self.RED
@@ -21,13 +22,9 @@ class M4M_AnalogClock(AnalogClock):
         self.circleFillColor = self.BLACK
         self.backColor = self.BLACK
 
-        #print("Creating portal")
         self.portal = MatrixPortal()
-        #print("Creating display")
         self.display = self.portal.display
-        #print("Printing display type: ", type(self.display))
 
-        #print("Calling pre_calc")
         self.pre_calc()
         self.drawStatic(self.display)
         self.drawClock(self.display)
@@ -39,7 +36,6 @@ class M4M_AnalogClock(AnalogClock):
         if self.portal.network is None:
             self.portal.network = Network()
         attempt = 0
-        #while not self.network._wifi.is_connected:
         while not self.portal.network.is_connected:
             try:
                 self.portal.network.connect()

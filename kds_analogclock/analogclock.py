@@ -18,7 +18,6 @@ class AnalogClock:
     def __init__(
         self
         ):
-        #print("Called the init function for my AnalogClock class")
 
         #Some 'reasonable' defaults
         self.WHITE  = 0xffffff
@@ -41,7 +40,7 @@ class AnalogClock:
         self.network = None
         self.portal  = None
         self.display = None
-        self.UPDATE_HOUR_MINS = [ 12, 24,36,48 ]
+        self.UPDATE_HOUR_MINS = [ 12, 24, 36, 48 ]
         self.rtc = None
 
         self.lines = []
@@ -57,7 +56,6 @@ class AnalogClock:
         if self.display is None:
             print("update: Display is not set. The inheriting class is responcible.")
             return
-        #print("update display type test: ", type(self.display))
         if wait is not None:
             time.sleep(wait)
         self.drawClock(self.display)
@@ -75,7 +73,7 @@ class AnalogClock:
         self.centerX = int((self.WIDTH-1)/2)
         self.centerY = int((self.HEIGHT-1)/2)
         self.radius  = min(self.centerX, self.centerY)
-        print("Height: %d Width: %d Radius: %d" % (self.HEIGHT, self.WIDTH, self.radius))
+        #print("Height: %d Width: %d Radius: %d" % (self.HEIGHT, self.WIDTH, self.radius))
         self.radius_50 = int(self.radius * .5)
         self.radius_75 = int(self.radius * .75)
         self.radius_75 = int(self.radius * .75)
@@ -118,8 +116,6 @@ class AnalogClock:
           sin_angle = self.pre_sin[step]
           cos_angle = self.pre_cos[step]
 
-          x2 = int( self.centerX + (sin_angle * self.radius) )
-          y2 = int( self.centerY - (cos_angle * self.radius) )
           x2 = int( self.centerX + (sin_angle * self.radius) )
           y2 = int( self.centerY - (cos_angle * self.radius) )
 
@@ -218,13 +214,11 @@ class AnalogClock:
             self.HOURS_PASSED += 1
         if self.HOURS_PASSED > 12:
             #Update the network time
-            print("More than 12 hours. Time to update time")
+            #print("More than 12 hours. Time to update time")
             self.connectNetwork()
             self.HOURS_PASSED = 0
 
-        #Change: Update the update the hour
         if self.MIN != curr_time.tm_min:
-            #print("Current time: %d:%d:%d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
             update_min = True
             #when curr_time.tm_min == 12, 24, 36, 48
             if curr_time.tm_min in self.UPDATE_HOUR_MINS:
@@ -234,9 +228,7 @@ class AnalogClock:
         self.SEC  = curr_time.tm_sec
         print("Current time: %02d:%02d:%02d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
 
-        #gc.collect()
         self.g1.append(self.tg1)
-        #print("Before drawing Free memory: " , gc.mem_free() )
         self.drawClockCircle(self.g1)
         self.drawClockHourTics(self.g1)
         self.drawClockSecHand(self.g1)
@@ -250,6 +242,8 @@ class AnalogClock:
         #if board.board_id == "adafruit_magtag_2.9_grayscale" and self.display.time_to_refresh > 0:
         #    time.sleep(self.display.time_to_refresh)
 
+        #lets run collect at the end of the update
+        gc.collect()
         self.display.refresh()
 
     def connectNetwork(self):
