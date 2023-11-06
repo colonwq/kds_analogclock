@@ -2,7 +2,6 @@
 This project was inspired by Dave's Garage 'Live' coding of a analog clock
 displaying on his LED display.
 I do not have his display or hardware.
-I do have a Matrix M4 portal and 64x32 display gathering dust.
 
 References:
 Dave's Garage: https://www.youtube.com/watch?v=yIpdBVu9xv8
