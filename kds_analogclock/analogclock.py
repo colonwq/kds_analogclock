@@ -9,6 +9,7 @@ Adafruit pyPortal https://www.adafruit.com/product/4116
 import time
 import math
 import displayio
+import gc
 #https://docs.circuitpython.org/projects/display-shapes/en/latest/index.html
 from adafruit_display_shapes.circle import Circle
 from adafruit_display_shapes.line import Line
