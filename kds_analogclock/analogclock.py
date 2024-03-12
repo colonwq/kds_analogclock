@@ -42,7 +42,7 @@ class AnalogClock:
         self.portal  = None
         self.display = None
         self.UPDATE_HOUR_MINS = [ 12, 24, 36, 48 ]
-        self.rtc = None
+        self.my_rtc = None
 
         self.lines = []
         self.static_tics = [None] * 12
@@ -55,7 +55,7 @@ class AnalogClock:
 
     def update(self, wait=None):
         if self.display is None:
-            print("update: Display is not set. The inheriting class is responsible.")
+            print("update: Display is not set. The inheriting class is responcible.")
             return
         if wait is not None:
             time.sleep(wait)
@@ -201,7 +201,7 @@ class AnalogClock:
         update_min = False
         update_hour = False
 
-        #delete current tile groups in the display group
+        #delete current tilegroups in the display group
         while len(self.g1)>0:
             self.g1.pop()
 
@@ -221,6 +221,7 @@ class AnalogClock:
 
         if self.MIN != curr_time.tm_min:
             update_min = True
+            #when curr_time.tm_min == 12, 24, 36, 48
             if curr_time.tm_min in self.UPDATE_HOUR_MINS:
                 update_hour = True
         self.HOUR = curr_time.tm_hour
@@ -238,6 +239,9 @@ class AnalogClock:
 
         #print("After drawing Free memory: " , gc.mem_free() )
         self.display.show(self.g1)
+        #the magtag is an eink display and cannot refresh too quickly
+        #if board.board_id == "adafruit_magtag_2.9_grayscale" and self.display.time_to_refresh > 0:
+        #    time.sleep(self.display.time_to_refresh)
 
         #lets run collect at the end of the update
         gc.collect()
