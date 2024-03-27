@@ -2,8 +2,8 @@ from kds_analogclock.analogclock import AnalogClock
 from adafruit_pcf8523.pcf8523 import PCF8523
 import board
 import rtc
-import busio
-import time
+#import busio
+#import time
 
 class Clue_AnalogClock(AnalogClock):
     def __init__(self):
@@ -32,7 +32,7 @@ class Clue_AnalogClock(AnalogClock):
         if self.my_rtc == None:
             self.my_rtc = PCF8523(board.STEMMA_I2C())
         t = self.my_rtc.datetime
-        print("Time from connect network: ", t)
+        print("Time from connectNetwork(with rtc): ", t)
         rtc.set_time_source(self.my_rtc)
-        curr_time = time.localtime()
-        print("Curr time: ", curr_time)
+        #curr_time = time.localtime()
+        #print("Curr time: ", curr_time)

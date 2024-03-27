@@ -12,11 +12,11 @@ I have adopted my class to the boards around my desk as I find them. Most of the
 | [Funhouse](https://www.adafruit.com/product/4985) | Yes    | (1)(3) |
 | [Magtag](https://www.adafruit.com/product/4800)   | Yes    | (2)(3) |
 | [Pyportal](https://www.adafruit.com/product/4116) | Yes    | (1)(3) |
-| [M4 Matrix](https://www.adafruit.com/product/4745) | Yes   | (1)(3)(9) |
-| [Feather Huzzah32](https://www.adafruit.com/product/3405)| No | (2)(5)(6)(11) |
-| [MacroPad](https://www.adafruit.com/product/5128) | Yes | (2)(10)
+| [M4 Matrix](https://www.adafruit.com/product/4745) | Yes   | (1)(3)(4)(9) |
+| [Feather Huzzah32](https://www.adafruit.com/product/3405)| Yes | (2)(4)(5)(6) |
+| [MacroPad](https://www.adafruit.com/product/5128) | Yes | (2)(4)(10)
 | [Circuit Playground Express](https://www.adafruit.com/product/3333) | No | (7)(8) |
-| [CLUE](https://www.adafruit.com/product/4500) | Yes | (2)(10)(4)
+| [CLUE](https://www.adafruit.com/product/4500) | Yes | (2)(4)(10)
 
 ## Notes
 1) Lots of colors
@@ -34,7 +34,7 @@ I have adopted my class to the boards around my desk as I find them. Most of the
 ## Design Notes
 
 ### Separation of class duties
-The kds_analog clock base class is responsible for the pre-computation of needed math values and calculation and display of the clock elements. 
+The kds_analog clock base class is responsible for the pre-computation of needed math values and calculation and display of the clock elements.
 
 The displays which use the kds_analog clock are responsible for doing the following
 - __init__

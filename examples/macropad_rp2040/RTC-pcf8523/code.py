@@ -1,12 +1,13 @@
-import busio
-import adafruit_pcf8523
-import time
-import board
 from adafruit_macropad import MacroPad
+import adafruit_pcf8523
+import board
+import busio
+import time
 
 #This gets the RTC device on the stemma qt port
-myI2C = busio.I2C(board.SCL, board.SDA)
-rtc = adafruit_pcf8523.PCF8523(myI2C)
+#myI2C = busio.I2C(board.SCL, board.SDA)
+#rtc = adafruit_pcf8523.PCF8523(myI2C)
+my_rtc = PCF8523(board.STEMMA_I2C())
 
 year = 2000
 mon = 0
@@ -14,8 +15,7 @@ day = 1
 hr = 6
 min = 0
 
-t = rtc.datetime
-#print(t)     # uncomment for debugging
+t = my_rtc.datetime
 year = t.tm_year
 mon = t.tm_mon
 day = t.tm_mday
@@ -54,7 +54,7 @@ while True:
             if SAVE == True:
                                      #year, mon,   date,  hour, min, sec, wday, yday, isdst
                 t = time.struct_time((year, mon, day, hr,   min, 0,   0,    -1,   -1))
-                rtc.datetime = t
+                my_rtc.datetime = t
                 print()
                 text_lines[2].text = "Saved"
             else:
