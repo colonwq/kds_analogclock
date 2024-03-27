@@ -201,14 +201,14 @@ class AnalogClock:
         update_min = False
         update_hour = False
 
-        #delete current tilegroups in the display group
-        while len(self.g1)>0:
-            self.g1.pop()
-
         curr_time = time.localtime()
         if self.SEC == curr_time.tm_sec:
             time.sleep(.1)
             return
+
+        #delete current tilegroups in the display group
+        while len(self.g1)>0:
+            self.g1.pop()
 
         if curr_time.tm_hour != self.HOUR:
             #print("Hour changed")
@@ -222,12 +222,14 @@ class AnalogClock:
         if self.MIN != curr_time.tm_min:
             update_min = True
             #when curr_time.tm_min == 12, 24, 36, 48
+            #this will move the hour hand to the next minute tick.
             if curr_time.tm_min in self.UPDATE_HOUR_MINS:
                 update_hour = True
         self.HOUR = curr_time.tm_hour
         self.MIN  = curr_time.tm_min
         self.SEC  = curr_time.tm_sec
-        print("Current time: %02d:%02d:%02d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
+        if update_min == True:
+          print("Current time: %02d:%02d:%02d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
 
         self.g1.append(self.tg1)
         self.drawClockCircle(self.g1)
@@ -237,7 +239,6 @@ class AnalogClock:
         self.drawClockHourHand(self.g1, force=update_hour)
         self.drawClockCenter(self.g1)
 
-        #print("After drawing Free memory: " , gc.mem_free() )
         self.display.show(self.g1)
         #the magtag is an eink display and cannot refresh too quickly
         #if board.board_id == "adafruit_magtag_2.9_grayscale" and self.display.time_to_refresh > 0:

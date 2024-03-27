@@ -1,10 +1,9 @@
 from kds_analogclock.analogclock import AnalogClock
+from adafruit_pcf8523.pcf8523 import PCF8523
 import board
 import busio
-#import adafruit_pcf8523
-from adafruit_pcf8523.pcf8523 import PCF8523
 import rtc
-import time
+#import time
 
 class Macropad_AnalogClock(AnalogClock):
     def __init__(self):
@@ -29,10 +28,9 @@ class Macropad_AnalogClock(AnalogClock):
 
     def connectNetwork(self):
         if self.my_rtc == None:
-            myI2C = busio.I2C(board.SCL, board.SDA)
-            self.my_rtc = PCF8523(myI2C)
+            self.my_rtc = PCF8523(board.STEMMA_I2C())
         t = self.my_rtc.datetime
-        print("Time from connect network: ", t)
+        print("Time from connectNetwork(with rtc): ", t)
         rtc.set_time_source(self.my_rtc)
-        curr_time = time.localtime()
-        print("Curr time: ", curr_time)
+        #curr_time = time.localtime()
+        #print("Curr time: ", curr_time)
