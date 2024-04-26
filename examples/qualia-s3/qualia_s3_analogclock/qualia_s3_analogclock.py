@@ -1,7 +1,8 @@
 from kds_analogclock.analogclock import AnalogClock
-from adafruit_pyportal import PyPortal
+from adafruit_qualia import Qualia
+import os
 
-class Pyportal_AnalogClock(AnalogClock):
+class Qualia_S3_AnalogClock(AnalogClock):
     def __init__(self):
         super().__init__()
 
@@ -13,7 +14,8 @@ class Pyportal_AnalogClock(AnalogClock):
         self.hourColor = self.BLUE
         self.backColor = self.GREY77
         self.circleFillColor = self.BLACK
-        self.portal = PyPortal()
+        #self.portal = Qualia(display_type="round21")
+        self.portal = Qualia(display_type=os.getenv("DISPLAY_TYPE"))
         self.display = self.portal.display
         self.display.auto_refresh = False
         

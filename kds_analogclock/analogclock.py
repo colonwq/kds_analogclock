@@ -187,7 +187,8 @@ class AnalogClock:
         self.drawClockHourTics(self.g1)
         self.drawClockCenter(self.g1)
 
-        display.show(self.g1)
+        #display.show(self.g1)
+        display.root_group = self.g1
 
         display.refresh()
 
@@ -239,7 +240,8 @@ class AnalogClock:
         self.drawClockHourHand(self.g1, force=update_hour)
         self.drawClockCenter(self.g1)
 
-        self.display.show(self.g1)
+        #self.display.show(self.g1)
+        self.display.root_group = self.g1
         #the magtag is an eink display and cannot refresh too quickly
         #if board.board_id == "adafruit_magtag_2.9_grayscale" and self.display.time_to_refresh > 0:
         #    time.sleep(self.display.time_to_refresh)
