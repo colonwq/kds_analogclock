@@ -17,6 +17,7 @@ I have adopted my class to the boards around my desk as I find them. Most of the
 | [MacroPad](https://www.adafruit.com/product/5128) | Yes | (2)(4)(10)
 | [Circuit Playground Express](https://www.adafruit.com/product/3333) | No | (7)(8) |
 | [CLUE](https://www.adafruit.com/product/4500) | Yes | (2)(4)(10)
+| [Qualia S3](https://www.adafruit.com/product/5800) | Yes | (1)(3)(11)
 
 ## Notes
 1) Lots of colors
@@ -29,7 +30,7 @@ I have adopted my class to the boards around my desk as I find them. Most of the
 8) Ran out of memory early in the development attempt
 9) Added the [64x32 RGB LED Matrix](https://www.adafruit.com/product/2278)
 10) Added [PFC8523 RTC](https://learn.adafruit.com/adafruit-pcf8523-real-time-clock)
-11) CircuitPython drive stopped showing up on development laptop
+11) Should support all qualia displays but developed with the 2.1"
 
 ## Design Notes
 
@@ -62,18 +63,13 @@ The following elements are always static:
 The hands are regenerated when they move from a previous location. The hour hand updates only when it aligns with a tick mark.
 
 ### Update time
-The base class will call the connectNetwork() after 12 hours of run time has passed. 
+The base class will call the connectNetwork() after 12 hours of run time has passed.
 
 ### Dynamic sizing on startup
 The size of the various elements is calculated based on the side of the display. The radius of the clock face is the smaller dimension of the display dimensions. All other elements are based from the radius with the values pre-calculated on startup.
 
-## Utilities and Example code
-- examples/funhouse is example code.py and library to use the Adafruit Funhouse
-- examples/m4matrix is example code.py and library to use the Adafruit M4Matrix portal and LED display panel
-- examples/macropad_rp2040 is an example code.py and library to use the Adafruit Macropad and PCF8523 RTC module
+## Utilities
 - examples/macropad_rp2040/RTC-pcf8523/code.py is an example code.py to program an RTC. This was written to use the Adafruit Micropad display wrapper class. The actual RTC code is small but portable.
-- examples/magtag is an example code.py and library to use the Adafruit Magtag
-- examples/pyportal is an example code.py and library to use the Adafruit Pyportal
  
 ## Possible future / Todos
 - Add more boards and displays
