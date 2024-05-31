@@ -7,6 +7,7 @@ I watched a video from [Dave's Garage](https://www.youtube.com/watch?v=yIpdBVu9x
 I have adopted my class to the boards around my desk as I find them. Most of these came from Adaboxes or other small projects I started and eventually abandoned.
 
 ## Supported Boards
+
 | Board | Supported | Notes|
 |----------|--------|--------
 | [Funhouse](https://www.adafruit.com/product/4985) | Yes    | (1)(3) |
@@ -20,6 +21,7 @@ I have adopted my class to the boards around my desk as I find them. Most of the
 | [Qualia S3](https://www.adafruit.com/product/5800) | Yes | (1)(3)(11)
 
 ## Notes
+
 1) Lots of colors
 2) Black and White
 3) Uses Adafuit portal class for board
@@ -32,29 +34,38 @@ I have adopted my class to the boards around my desk as I find them. Most of the
 10) Added [PFC8523 RTC](https://learn.adafruit.com/adafruit-pcf8523-real-time-clock)
 11) Should support all qualia displays but developed with the 2.1"
 
+## CP 9+ Notes
+
+- Apparently the [/sd directory](https://github.com/adafruit/circuitpython/issues/8872) needs to be created on newly formatted boards.
+
 ## Design Notes
 
 ### Separation of class duties
+
 The kds_analog clock base class is responsible for the pre-computation of needed math values and calculation and display of the clock elements.
 
 The displays which use the kds_analog clock are responsible for doing the following
+
 - __init__
-  * Call the super class __init__
-  * Declare the color values used
-  * Create the portal object
-  * Create the display object
-  * Set any display update parameters
-  * Call the following functions, pre_calc, drawStatic, drawClock and connectNetwork
+  - Call the super class __init__
+  - Declare the color values used
+  - Create the portal object
+  - Create the display object
+  - Set any display update parameters
+  - Call the following functions, pre_calc, drawStatic, drawClock and connectNetwork
 - connectNetwork
-  * Necessary code to connect to the internet or configure RTC usage
-  * Necessary code to update system time
+  - Necessary code to connect to the internet or configure RTC usage
+  - Necessary code to update system time
 
 ### Pre-computed the sin() and cos() values
+
 There are 60 possible locations for the clock hands. The code pre-computes the sin() and cos() values for these angles and stores them in a table for a quick lookup.
 
 ### Reuse static image elements
+
 The entire display is not generated with each update. 
 The following elements are always static:
+
 - The outer clock circle
 - The center clock circle
 - The tick marks around the clock
@@ -63,15 +74,19 @@ The following elements are always static:
 The hands are regenerated when they move from a previous location. The hour hand updates only when it aligns with a tick mark.
 
 ### Update time
+
 The base class will call the connectNetwork() after 12 hours of run time has passed.
 
 ### Dynamic sizing on startup
+
 The size of the various elements is calculated based on the side of the display. The radius of the clock face is the smaller dimension of the display dimensions. All other elements are based from the radius with the values pre-calculated on startup.
 
 ## Utilities
+
 - examples/macropad_rp2040/RTC-pcf8523/code.py is an example code.py to program an RTC. This was written to use the Adafruit Micropad display wrapper class. The actual RTC code is small but portable.
- 
+
 ## Possible future / Todos
+
 - Add more boards and displays
 - Auto discover display size for boards with multiple display options.
 - Memory optimization. I think I can cut the sin()/cos() table by a quarter

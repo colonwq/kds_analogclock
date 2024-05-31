@@ -1,0 +1,11 @@
+adafruit_bitmap_font
+adafruit_display_shapes
+adafruit_esp32spi
+adafruit_io
+adafruit_minimqtt
+adafruit_portalbase
+adafruit_pyportal
+adafruit_requests.mpy
+adafruit_touchscreen.mpy
+kds_analogclock
+pyportal_analogclock

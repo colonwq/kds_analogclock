@@ -1,3 +1,4 @@
+import os
 from kds_analogclock.analogclock import AnalogClock
 from adafruit_pyportal import PyPortal
 
