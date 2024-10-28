@@ -108,7 +108,7 @@ class AnalogClock:
 
       return self.sine_table[angle]
 
-    def lookup_cosine(angle):
+    def lookup_cosine(self, angle):
       '''
       Given an angle, return the value in the table
       The input range will be between 0 and 360 
