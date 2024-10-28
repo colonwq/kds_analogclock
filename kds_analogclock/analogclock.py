@@ -51,7 +51,79 @@ class AnalogClock:
         self.static_minute_hand = None
         self.static_hour_hand = None
         self.g1 = None
-        self.tg1 = None
+        self.tg2 = None
+
+        # Pre-defined table of sine values for angles from 0 to 90 degrees, stepping every 6 degrees
+        self.sine_table = {
+            0: 0,
+            6: 0.1045,
+            12: 0.2079,
+            18: 0.3147,
+            24: 0.4067,
+            30: 0.5,
+            36: 0.5878,
+            42: 0.6691,
+            48: 0.7431,
+            54: 0.8090,
+            60: 0.8660,
+            66: 0.9135,
+            72: 0.9511,
+            78: 0.9781,
+            84: 0.9945,
+            90: 1
+        }
+        self.cosine_table = {
+          0: 1.0000,
+          6: 0.9945,
+          12: 0.9781,
+          18: 0.9511,
+          24: 0.9205,
+          30: 0.8660,
+          36: 0.8090,
+          42: 0.7431,
+          48: 0.6691,
+          54: 0.5878,
+          60: 0.5000,
+          66: 0.4067,
+          72: 0.3090,
+          78: 0.2079,
+          84: 0.1045,
+          90: 0.0000
+      }
+    
+    def lookup_sine(self, angle):
+      '''
+      Given an angle, return the value in the table
+      The input range will be between 0 and 360 
+      with multiples of 6
+      '''
+      #angle %= 360  # Normalize to 0-360 degrees
+      if angle > 180:
+        angle = 360 - angle  # Use the symmetry of the sine function
+      if angle > 90:
+         angle = 90 - ( angle - 90 )
+
+      # Find the nearest angle in the table
+      #angle = round(angle / 6) * 6
+
+      return self.sine_table[angle]
+
+    def lookup_cosine(angle):
+      '''
+      Given an angle, return the value in the table
+      The input range will be between 0 and 360 
+      with multiples of 6
+      '''
+      angle %= 360  # Normalize to 0-360 degrees
+      if angle > 180:
+        angle = 360 - angle  # Use the symmetry of the sine function
+      if angle > 90:
+        angle = 90 - ( angle - 90 )
+    
+      # Find the nearest angle in the table
+      angle = round(angle / 6) * 6
+
+      return self.cosine_table[angle]
 
     def update(self, wait=None):
         if self.display is None:
@@ -77,16 +149,8 @@ class AnalogClock:
         #print("Height: %d Width: %d Radius: %d" % (self.HEIGHT, self.WIDTH, self.radius))
         self.radius_50 = int(self.radius * .5)
         self.radius_75 = int(self.radius * .75)
-        self.radius_75 = int(self.radius * .75)
         self.radius_80 = int(self.radius * .80)
         self.radius_90 = int(self.radius * .90)
-
-        step = 0
-        while step < 61:
-            angle = math.radians(step * 6)
-            self.pre_cos[step] = math.cos(angle)
-            self.pre_sin[step] = math.sin(angle)
-            step += 1
 
     '''
     Draw the big clock circle
@@ -112,14 +176,15 @@ class AnalogClock:
     '''
     def drawClockHourTics(self,output):
       if len(self.lines) == 0:
-        step = 0
-        while step < 60:
-          sin_angle = self.pre_sin[step]
-          cos_angle = self.pre_cos[step]
+        for step in range(0,60,5):
+          angle = step*6
+          sin_angle = self.lookup_sine(angle)
+          cos_angle = self.lookup_cosine(angle)
 
           x2 = int( self.centerX + (sin_angle * self.radius) )
           y2 = int( self.centerY - (cos_angle * self.radius) )
 
+          #What is faster, one mod or 12 comparisons
           if step%15 == 0:
             x3 = int( self.centerX + (sin_angle * self.radius_80 ) )
             y3 = int( self.centerY - (cos_angle * self.radius_80 ) )
@@ -129,7 +194,6 @@ class AnalogClock:
 
           line = Line( x2, y2, x3, y3, self.tickColor )
           self.lines.append(line)
-          step += 5
 
       for line in self.lines:
         output.append(line)
@@ -139,8 +203,8 @@ class AnalogClock:
     The second hand goes all the way to to the edge
     '''
     def drawClockSecHand(self, output ):
-        x2 = int( self.centerX + (self.pre_sin[self.SEC] * (self.radius) ) )
-        y2 = int( self.centerY - (self.pre_cos[self.SEC] * (self.radius) ) )
+        x2 = int( self.centerX + (self.lookup_sine(self.SEC*6) * (self.radius) ) )
+        y2 = int( self.centerY - (self.lookup_cosine(self.SEC*6) * (self.radius) ) )
         line = Line( self.centerX, self.centerY, x2, y2, self.secColor )
         output.append( line )
 
@@ -150,8 +214,8 @@ class AnalogClock:
     '''
     def drawClockMinHand(self, output, force=False ):
         if self.static_minute_hand is None or force==True:
-            x2 = int( self.centerX + (self.pre_sin[self.MIN] * self.radius_75 ) )
-            y2 = int( self.centerY - (self.pre_cos[self.MIN] * self.radius_75 ) )
+            x2 = int( self.centerX + (self.lookup_sine(self.MIN*6) * self.radius_75 ) )
+            y2 = int( self.centerY - (self.lookup_cosine(self.MIN*6) * self.radius_75 ) )
             self.static_minute_hand = Line( self.centerX, self.centerY, x2, y2, self.minColor )
         output.append(self.static_minute_hand)
 
@@ -165,8 +229,8 @@ class AnalogClock:
           position = (self.HOUR)*5 + MIN_TIC
           if position > 60:
               position -= 60
-          x2 = int( self.centerX + (self.pre_sin[position] * (self.radius_50) ) )
-          y2 = int( self.centerY - (self.pre_cos[position] * (self.radius_50) ) )
+          x2 = int( self.centerX + (self.lookup_sine(position*6) * (self.radius_50) ) )
+          y2 = int( self.centerY - (self.lookup_cosine(position*6) * (self.radius_50) ) )
           static_hour_hand = Line( self.centerX, self.centerY, x2, y2, self.hourColor )
         output.append( static_hour_hand )
 
