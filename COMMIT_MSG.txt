@@ -1,0 +1,89 @@
+Analog clock: UI tweaks, flicker fix, RTC/network examples, and READMEs
+
+Disclaimer: This patch was created using Cursor AI
+
+=== kds_analogclock (base class) ===
+
+- Hour tic: draw a circle (same size as center dot) at the inner end of the
+  first hour tic (12 o'clock). New attribute static_first_tic_circle; created
+  once in drawClockHourTics when building the first line.
+
+- Flicker reduction: stop clearing the entire display group each second.
+  Track static element count (_static_count) set in drawStatic (and when
+  building g1 in drawClock if g1 was None). Each tick, pop only the last
+  three items (second, minute, hour hands) and re-append the three hands;
+  leave background, circle, tics, and center in place.
+
+- Lazy static group: if drawClock runs with g1 is None (e.g. drawStatic
+  skipped), build the static display group once and set _static_count, then
+  use the same hand-only replace logic.
+
+- Hour hand bug fix: assign to self.static_hour_hand when creating the line
+  and append self.static_hour_hand (was using a local variable and never
+  storing the hand).
+
+- Hands origin: all three hands (second, minute, hour) now start from the
+  edge of the center dot (radius int(radius * .05) + 1) in the direction
+  of each hand instead of from the circle center.
+
+- Messages: convert print() to f-strings; fix typo "responcible" ->
+  "responsible" in update/drawStatic messages.
+
+=== Examples: network / RTC / display ===
+
+- PyPortal: Add WiFi credential check before connect (settings.toml or
+  secrets.py); raise OSError with clear message if CIRCUITPY_WIFI_SSID or
+  CIRCUITPY_WIFI_PASSWORD missing. Catch TypeError (NoneType len) from
+  ESP32 SPI and re-raise as OSError with same message. Add import time.
+  All prints to f-strings; except blocks catch and print exception
+  (ConnectionError, TypeError, Exception as e).
+
+- Qualia S3: Add import time. Prints to f-strings; except Exception as e
+  and print(f"Error updating datetime from network: {e}").
+
+- MagTag: Add import time. Prints to f-strings; except Exception as e and
+  print exception for get_local_time retry loop.
+
+- FunHouse: Add import time. Same print/except updates as MagTag.
+
+- M4 Matrix: Add import time. Prints to f-strings; except Exception as e
+  and print exception for get_local_time retry loop.
+
+- MacroPad: Print time from RTC using f-string (f"Time from connectNetwork(with rtc): {t}").
+
+- Huzzah32: Top-level except ImportError as e and print(f"ImportError loading rtc: {e}").
+  All prints converted to f-strings; except KeyError as e and print before
+  re-raise in get_strftime.
+
+=== Example READMEs ===
+
+- examples/clue-nrf52840/README.md (new): CLUE with board.DISPLAY; RTC
+  (PCF8523 on STEMMA I2C) instead of network; colored theme; setup notes.
+
+- examples/macropad_rp2040/README.md (new): MacroPad with board.DISPLAY;
+  RTC (PCF8523) instead of network; monochrome theme; reference to
+  RTC-pcf8523/code.py for setting the RTC.
+
+- examples/pyportal/README.md (new): PyPortal; network (WiFi + get_local_time);
+  credential check and setup (settings.toml); colored theme.
+
+- examples/qualia-s3/README.md (updated): Qualia; display type from
+  DISPLAY_TYPE in settings.toml; network; colored theme; setup and
+  display selection details.
+
+- examples/magtag/README.md (new): MagTag e-ink; overridden update() for
+  light sleep / time_to_refresh; black-on-white theme; network; setup.
+
+- examples/funhouse/README.md (new): FunHouse; network; colored theme;
+  setup.
+
+- examples/m4matrix/README.md (new): MatrixPortal; RGB matrix; network;
+  colored theme; setup.
+
+- examples/huzzah32/README.md (new): Feather Huzzah32 + 128x32 I2C OLED;
+  no portal; custom display, connectNetwork, get_strftime/get_local_time
+  (Adafruit IO time API); monochrome; settings.toml setup.
+
+Each README describes customizations from kds_analogclock (time source:
+RTC vs network; display; any overrides), screen drawing/colors, and
+setup where applicable.
