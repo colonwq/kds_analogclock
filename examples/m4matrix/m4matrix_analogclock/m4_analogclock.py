@@ -4,6 +4,7 @@ for the M4 Matrix portal backpack.
 This was tested with a 32x64 but should work with other
 sizes.
 '''
+import time
 from kds_analogclock.analogclock import AnalogClock
 #https://docs.circuitpython.org/projects/matrixportal/en/latest/
 from adafruit_matrixportal.matrixportal import MatrixPortal
@@ -31,7 +32,7 @@ class M4M_AnalogClock(AnalogClock):
         self.connectNetwork()
 
     def connectNetwork(self):
-        print("connectNetwork called")
+        print(f"connectNetwork called")
         #this should not happen as athe MatrixPortal init creats it
         if self.portal.network is None:
             self.portal.network = Network()
@@ -40,15 +41,15 @@ class M4M_AnalogClock(AnalogClock):
             try:
                 self.portal.network.connect()
             except ConnectionError as e:
-                print("could not connect to AP, retrying: ", e)
+                print(f"could not connect to AP, retrying: {e}")
                 continue
 
         while attempt < 3:
             try:
                 self.portal.network.get_local_time()
                 attempt = 3
-            except:
+            except Exception as e:
                 attempt += 1
-                print("Error updating datetime from network: ")
+                print(f"Error updating datetime from network: {e}")
                 time.sleep(1)
                 continue

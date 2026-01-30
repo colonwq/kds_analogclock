@@ -14,7 +14,8 @@ import time
 
 try:
     import rtc
-except ImportError:
+except ImportError as e:
+    print(f"ImportError loading rtc: {e}")
     rtc = None
 
 # pylint: disable=line-too-long, too-many-lines, too-many-public-methods
@@ -95,9 +96,9 @@ class Huzzah32_AnalogClock(AnalogClock):
         if show_error:
             if setting_name in ("CIRCUITPY_WIFI_SSID", "CIRCUITPY_WIFI_PASSWORD"):
                 print(
-                    """WiFi settings are kept in settings.toml, please add them there!
-        the secrets dictionary must contain 'CIRCUITPY_WIFI_SSID' and 'CIRCUITPY_WIFI_PASSWORD'
-        at a minimum in order to use network related features"""
+                    f"WiFi settings are kept in settings.toml, please add them there! "
+                    f"The secrets dictionary must contain 'CIRCUITPY_WIFI_SSID' and 'CIRCUITPY_WIFI_PASSWORD' "
+                    f"at a minimum in order to use network related features"
                 )
             else:
                 print(
@@ -142,10 +143,10 @@ class Huzzah32_AnalogClock(AnalogClock):
         if location is None:
             location = self._get_setting("timezone", False)
         if location:
-            print("Getting time for timezone", location)
+            print(f"Getting time for timezone {location}")
             api_url = (TIME_SERVICE + "&tz=%s") % (aio_username, aio_key, location)
         else:  # we'll try to figure it out from the IP address
-            print("Getting time from IP address")
+            print(f"Getting time from IP address")
             api_url = TIME_SERVICE % (aio_username, aio_key)
         api_url += "&fmt=" + self.url_encode(time_format)
 
@@ -154,7 +155,7 @@ class Huzzah32_AnalogClock(AnalogClock):
             response = self._requests.get(api_url, timeout=10)
             self.neo_status(STATUS_DATA_RECEIVED)
             if response.status_code != 200:
-                print(response)
+                print(f"Response: {response}")
                 error_message = (
                     "Error connecting to Adafruit IO. The response was: "
                     + response.text
@@ -162,10 +163,11 @@ class Huzzah32_AnalogClock(AnalogClock):
                 self.neo_status(STATUS_HTTP_ERROR)
                 raise RuntimeError(error_message)
             if self._debug:
-                print("Time request: ", api_url)
-                print("Time reply: ", response.text)
+                print(f"Time request: {api_url}")
+                print(f"Time reply: {response.text}")
             reply = response.text
-        except KeyError:
+        except KeyError as e:
+            print(f"KeyError in get_strftime: {e}")
             raise KeyError(
                 "Was unable to lookup the time, try setting secrets['timezone'] according to http://worldtimeapi.org/timezones"  # pylint: disable=line-too-long
             ) from KeyError
@@ -208,11 +210,11 @@ class Huzzah32_AnalogClock(AnalogClock):
       #Alright this seems to be a bit of a cheat
       #The runtime of this board joins the wifi for the web serial to work. 
       #See: https://learn.adafruit.com/circuitpython-with-esp32-quick-start/setting-up-web-workflow
-      print("I have developed a new connectNetwork")
+      print(f"I have developed a new connectNetwork")
       if not wifi.Radio.connected:
-        print("Not connected to wifi")
+        print(f"Not connected to wifi")
       else:
-        print("Connected to wifi")
+        print(f"Connected to wifi")
         print(f"My IP address: {wifi.radio.ipv4_address}")
         if self._requests == None:
            #self._pool = socketpool.SocketPool(self._wifi.radio)

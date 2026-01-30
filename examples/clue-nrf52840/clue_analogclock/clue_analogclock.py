@@ -32,7 +32,7 @@ class Clue_AnalogClock(AnalogClock):
         if self.my_rtc == None:
             self.my_rtc = PCF8523(board.STEMMA_I2C())
         t = self.my_rtc.datetime
-        print("Time from connectNetwork(with rtc): ", t)
+        #print("Time from connectNetwork(with rtc): ", t)
         rtc.set_time_source(self.my_rtc)
         #curr_time = time.localtime()
         #print("Curr time: ", curr_time)

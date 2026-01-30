@@ -47,10 +47,12 @@ class AnalogClock:
         self.static_tics = [None] * 12
         self.static_big_circle = None
         self.static_small_circle = None
+        self.static_first_tic_circle = None
         self.static_minute_hand = None
         self.static_hour_hand = None
         self.g1 = None
         self.tg1 = None
+        self._static_count = 0  # number of static elements in g1 (only hands are replaced each tick)
 
         # Static lookup tables for 0 to 42 degrees (step 6)
         # Precision: 4 digits beyond decimal
@@ -103,7 +105,7 @@ class AnalogClock:
 
     def update(self, wait=None):
         if self.display is None:
-            print("update: Display is not set. The inheriting class is responcible.")
+            print(f"update: Display is not set. The inheriting class is responsible.")
             return
         if wait is not None:
             time.sleep(wait)
@@ -154,6 +156,7 @@ class AnalogClock:
     and 90% for the rest
     '''
     def drawClockHourTics(self,output):
+      small_circle_r = int(self.radius * .05) + 1
       if len(self.lines) == 0:
         step = 0
         while step < 60:
@@ -172,35 +175,50 @@ class AnalogClock:
 
           line = Line( x2, y2, x3, y3, self.tickColor )
           self.lines.append(line)
+          if step == 0 and self.static_first_tic_circle is None:
+            self.static_first_tic_circle = Circle(x3, y3, small_circle_r, fill=self.centerColor, outline=self.centerColor)
           step += 5
 
       for line in self.lines:
         output.append(line)
+      if self.static_first_tic_circle is not None:
+        output.append(self.static_first_tic_circle)
 
     '''
     Draw the clock hand
-    The second hand goes all the way to to the edge
+    The second hand goes all the way to to the edge.
+    Hands start from the edge of the center dot.
     '''
     def drawClockSecHand(self, output ):
-        x2 = int( self.centerX + (self.lookup_sin(self.SEC * 6) * (self.radius) ) )
-        y2 = int( self.centerY - (self.lookup_cos(self.SEC * 6) * (self.radius) ) )
-        line = Line( self.centerX, self.centerY, x2, y2, self.secColor )
+        angle = self.SEC * 6
+        r_dot = int(self.radius * .05) + 1
+        x1 = int( self.centerX + (self.lookup_sin(angle) * r_dot) )
+        y1 = int( self.centerY - (self.lookup_cos(angle) * r_dot) )
+        x2 = int( self.centerX + (self.lookup_sin(angle) * (self.radius) ) )
+        y2 = int( self.centerY - (self.lookup_cos(angle) * (self.radius) ) )
+        line = Line( x1, y1, x2, y2, self.secColor )
         output.append( line )
 
     '''
     Draw the minute hand
-    The minute hand is 75% of the way from the center to the edge
+    The minute hand is 75% of the way from the center to the edge.
+    Hands start from the edge of the center dot.
     '''
     def drawClockMinHand(self, output, force=False ):
         if self.static_minute_hand is None or force==True:
-            x2 = int( self.centerX + (self.lookup_sin(self.MIN * 6) * self.radius_75 ) )
-            y2 = int( self.centerY - (self.lookup_cos(self.MIN * 6) * self.radius_75 ) )
-            self.static_minute_hand = Line( self.centerX, self.centerY, x2, y2, self.minColor )
+            angle = self.MIN * 6
+            r_dot = int(self.radius * .05) + 1
+            x1 = int( self.centerX + (self.lookup_sin(angle) * r_dot) )
+            y1 = int( self.centerY - (self.lookup_cos(angle) * r_dot) )
+            x2 = int( self.centerX + (self.lookup_sin(angle) * self.radius_75 ) )
+            y2 = int( self.centerY - (self.lookup_cos(angle) * self.radius_75 ) )
+            self.static_minute_hand = Line( x1, y1, x2, y2, self.minColor )
         output.append(self.static_minute_hand)
 
     '''
     Draw the hour hand
-    The hour hand is 50% of the way from the center to the edge
+    The hour hand is 50% of the way from the center to the edge.
+    Hands start from the edge of the center dot.
     '''
     def drawClockHourHand(self, output, force=False ):
         if self.static_hour_hand is None or force==True:
@@ -208,17 +226,21 @@ class AnalogClock:
           position = (self.HOUR)*5 + MIN_TIC
           if position > 60:
               position -= 60
-          x2 = int( self.centerX + (self.lookup_sin(position * 6) * (self.radius_50) ) )
-          y2 = int( self.centerY - (self.lookup_cos(position * 6) * (self.radius_50) ) )
-          static_hour_hand = Line( self.centerX, self.centerY, x2, y2, self.hourColor )
-        output.append( static_hour_hand )
+          angle = position * 6
+          r_dot = int(self.radius * .05) + 1
+          x1 = int( self.centerX + (self.lookup_sin(angle) * r_dot) )
+          y1 = int( self.centerY - (self.lookup_cos(angle) * r_dot) )
+          x2 = int( self.centerX + (self.lookup_sin(angle) * (self.radius_50) ) )
+          y2 = int( self.centerY - (self.lookup_cos(angle) * (self.radius_50) ) )
+          self.static_hour_hand = Line( x1, y1, x2, y2, self.hourColor )
+        output.append( self.static_hour_hand )
 
     '''
     Draw static parts of the dial
     '''
     def drawStatic(self, display):
         if self.display is None:
-            print("drawStatic: Display is not set. The inheriting class is responcible.")
+            print(f"drawStatic: Display is not set. The inheriting class is responsible.")
             return
         palette = displayio.Palette(1)
         palette[0] = self.backColor
@@ -232,6 +254,7 @@ class AnalogClock:
 
         #display.show(self.g1)
         display.root_group = self.g1
+        self._static_count = len(self.g1)
 
         display.refresh()
 
@@ -250,8 +273,21 @@ class AnalogClock:
             time.sleep(.1)
             return
 
-        #delete current tilegroups in the display group
-        while len(self.g1)>0:
+        # Ensure static content exists (e.g. if drawStatic was skipped)
+        if self.g1 is None:
+            palette = displayio.Palette(1)
+            palette[0] = self.backColor
+            background = displayio.Bitmap(self.WIDTH, self.HEIGHT, 1)
+            self.tg1 = displayio.TileGrid(background, pixel_shader=palette)
+            self.g1 = displayio.Group()
+            self.g1.append(self.tg1)
+            self.drawClockCircle(self.g1)
+            self.drawClockHourTics(self.g1)
+            self.drawClockCenter(self.g1)
+            self._static_count = len(self.g1)
+
+        # Remove only the hands (last 3 elements); leave static content in place to minimize flicker
+        while len(self.g1) > self._static_count:
             self.g1.pop()
 
         if curr_time.tm_hour != self.HOUR:
@@ -275,13 +311,10 @@ class AnalogClock:
         if update_min == True:
           print("Current time: %02d:%02d:%02d" % (curr_time.tm_hour, curr_time.tm_min, curr_time.tm_sec) )
 
-        self.g1.append(self.tg1)
-        self.drawClockCircle(self.g1)
-        self.drawClockHourTics(self.g1)
+        # Re-add only the hands (static content already in g1)
         self.drawClockSecHand(self.g1)
         self.drawClockMinHand(self.g1, force=update_min)
         self.drawClockHourHand(self.g1, force=update_hour)
-        self.drawClockCenter(self.g1)
 
         #self.display.show(self.g1)
         self.display.root_group = self.g1
@@ -294,4 +327,4 @@ class AnalogClock:
         self.display.refresh()
 
     def connectNetwork(self):
-        print( "connectNetwork: To be implemented by the inheriting class")
+        print(f"connectNetwork: To be implemented by the inheriting class")

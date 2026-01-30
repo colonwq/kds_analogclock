@@ -5,6 +5,7 @@ https://www.adafruit.com/product/4800
 
 '''
 
+import time
 from kds_analogclock.analogclock import AnalogClock
 from adafruit_magtag.magtag import MagTag
 
@@ -43,15 +44,15 @@ class Magtag_AnalogClock(AnalogClock):
             try:
                 self.portal.network.connect()
             except ConnectionError as e:
-                print("could not connect to AP, retrying: ", e)
+                print(f"could not connect to AP, retrying: {e}")
                 continue
 
         while attempt < 3:
             try:
                 self.portal.network.get_local_time()
                 attempt = 3
-            except:
+            except Exception as e:
                 attempt += 1
-                print("Error updating datetime from network: ")
+                print(f"Error updating datetime from network: {e}")
                 time.sleep(1)
                 continue
