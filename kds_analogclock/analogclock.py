@@ -309,7 +309,7 @@ class AnalogClock:
         self.MIN  = curr_time.tm_min
         self.SEC  = curr_time.tm_sec
         if update_min == True:
-          print(f"Update Interval: {self.updateInterval}")
+          #print(f"Update Interval: {self.updateInterval}")
           print(f"Current time: {curr_time.tm_hour:02d}:{curr_time.tm_min:02d}:{curr_time.tm_sec:02d}")
 
         # Re-add only the hands (static content already in g1)
