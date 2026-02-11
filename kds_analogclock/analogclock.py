@@ -37,6 +37,7 @@ class AnalogClock:
         self.MIN  = 0
         self.SEC  = 0
         self.HOURS_PASSED = 0
+        self.updateInterval = 12  # hours between calling connectNetwork()
         self.network = None
         self.portal  = None
         self.display = None
@@ -293,9 +294,8 @@ class AnalogClock:
         if curr_time.tm_hour != self.HOUR:
             #print("Hour changed")
             self.HOURS_PASSED += 1
-        if self.HOURS_PASSED > 12:
-            #Update the network time
-            #print("More than 12 hours. Time to update time")
+        if self.HOURS_PASSED > self.updateInterval:
+            # Update the network time
             self.connectNetwork()
             self.HOURS_PASSED = 0
 

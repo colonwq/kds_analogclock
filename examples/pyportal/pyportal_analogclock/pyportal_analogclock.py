@@ -27,7 +27,8 @@ class Pyportal_AnalogClock(AnalogClock):
         self.portal = PyPortal()
         self.display = self.portal.display
         self.display.auto_refresh = False
-        
+        self.updateInterval = 3  # hours between network time sync
+
         self.pre_calc()
         self.drawStatic(self.display)
         self.drawClock(self.display)
