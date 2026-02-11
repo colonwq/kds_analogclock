@@ -1,0 +1,13 @@
+---
+description: Use 2 spaces for indentation; only change indentation when file is edited for another reason
+alwaysApply: true
+---
+
+# Indentation
+
+Use **2 spaces** for indentation in this project.
+
+- When editing or creating code, use 2 spaces per indent level (not 4 spaces or tabs).
+- **Only update indentation in a file when that file is already being modified for some other reason.** Do not open or change files solely to convert indentation.
+- New files and new code blocks: use 2 spaces from the start.
+- Existing files: when you edit a file for a feature fix, refactor, or other change, use 2-space indentation in the lines you add or modify; you may leave the rest of the file’s existing indentation as-is unless the change naturally touches those lines.
