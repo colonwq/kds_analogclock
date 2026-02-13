@@ -7,12 +7,12 @@ Adafruit pyPortal https://www.adafruit.com/product/4116
 '''
 ###
 import time
-import math
 import displayio
 import gc
 #https://docs.circuitpython.org/projects/display-shapes/en/latest/index.html
 from adafruit_display_shapes.circle import Circle
 from adafruit_display_shapes.line import Line
+from sincos import SinCos
 
 
 class AnalogClock:
@@ -54,55 +54,6 @@ class AnalogClock:
         self.g1 = None
         self.tg1 = None
         self._static_count = 0  # number of static elements in g1 (only hands are replaced each tick)
-
-        # Static lookup tables for 0 to 42 degrees (step 6)
-        # Precision: 4 digits beyond decimal
-        self.SIN_0_42 = [0.0000, 0.1045, 0.2079, 0.3090, 0.4067, 0.5000, 0.5878, 0.6691]
-        self.COS_0_42 = [1.0000, 0.9945, 0.9781, 0.9511, 0.9135, 0.8660, 0.8090, 0.7431]
-
-    def lookup_sin(self, angle):
-        """
-        Look up, with low precision, the sine of the angle.
-        
-        :param angle: Angle in degrees
-        :return: sine of the angle
-        """
-        angle = angle % 360
-        if 0 <= angle <= 90:
-            if angle <= 42:
-                # Direct lookup (0, 6, ..., 42)
-                return self.SIN_0_42[int(angle / 6)]
-            else:
-                # > 42 (e.g. 48, 54 ... 90)
-                # sin(x) = cos(90-x)
-                return self.COS_0_42[int((90 - angle) / 6)]
-        elif 90 < angle <= 180:
-            return self.lookup_sin(180 - angle)
-        elif 180 < angle <= 270:
-            return -self.lookup_sin(angle - 180)
-        else: # 270 < angle < 360
-            return -self.lookup_sin(360 - angle)
-
-    def lookup_cos(self, angle):
-        """
-        Look up, with low precision, the cosine of the angle.
-
-        :param angle: Angle in degrees
-        :return: cosine of the angle
-        """
-        angle = angle % 360
-        if 0 <= angle <= 90:
-            if angle <= 42:
-                return self.COS_0_42[int(angle / 6)]
-            else:
-                # cos(x) = sin(90-x)
-                return self.SIN_0_42[int((90 - angle) / 6)]
-        elif 90 < angle <= 180:
-            return -self.lookup_cos(180 - angle)
-        elif 180 < angle <= 270:
-            return -self.lookup_cos(angle - 180)
-        else: # 270 < angle < 360
-            return self.lookup_cos(360 - angle)
 
     def update(self, wait=None):
         if self.display is None:
@@ -161,8 +112,8 @@ class AnalogClock:
       if len(self.lines) == 0:
         step = 0
         while step < 60:
-          sin_angle = self.lookup_sin(step * 6)
-          cos_angle = self.lookup_cos(step * 6)
+          sin_angle = SinCos.lookup_sin(step * 6)
+          cos_angle = SinCos.lookup_cos(step * 6)
 
           x2 = int( self.centerX + (sin_angle * self.radius) )
           y2 = int( self.centerY - (cos_angle * self.radius) )
@@ -193,10 +144,10 @@ class AnalogClock:
     def drawClockSecHand(self, output ):
         angle = self.SEC * 6
         r_dot = int(self.radius * .05) + 1
-        x1 = int( self.centerX + (self.lookup_sin(angle) * r_dot) )
-        y1 = int( self.centerY - (self.lookup_cos(angle) * r_dot) )
-        x2 = int( self.centerX + (self.lookup_sin(angle) * (self.radius) ) )
-        y2 = int( self.centerY - (self.lookup_cos(angle) * (self.radius) ) )
+        x1 = int( self.centerX + (SinCos.lookup_sin(angle) * r_dot) )
+        y1 = int( self.centerY - (SinCos.lookup_cos(angle) * r_dot) )
+        x2 = int( self.centerX + (SinCos.lookup_sin(angle) * (self.radius) ) )
+        y2 = int( self.centerY - (SinCos.lookup_cos(angle) * (self.radius) ) )
         line = Line( x1, y1, x2, y2, self.secColor )
         output.append( line )
 
@@ -209,10 +160,10 @@ class AnalogClock:
         if self.static_minute_hand is None or force==True:
             angle = self.MIN * 6
             r_dot = int(self.radius * .05) + 1
-            x1 = int( self.centerX + (self.lookup_sin(angle) * r_dot) )
-            y1 = int( self.centerY - (self.lookup_cos(angle) * r_dot) )
-            x2 = int( self.centerX + (self.lookup_sin(angle) * self.radius_75 ) )
-            y2 = int( self.centerY - (self.lookup_cos(angle) * self.radius_75 ) )
+            x1 = int( self.centerX + (SinCos.lookup_sin(angle) * r_dot) )
+            y1 = int( self.centerY - (SinCos.lookup_cos(angle) * r_dot) )
+            x2 = int( self.centerX + (SinCos.lookup_sin(angle) * self.radius_75 ) )
+            y2 = int( self.centerY - (SinCos.lookup_cos(angle) * self.radius_75 ) )
             self.static_minute_hand = Line( x1, y1, x2, y2, self.minColor )
         output.append(self.static_minute_hand)
 
@@ -229,10 +180,10 @@ class AnalogClock:
               position -= 60
           angle = position * 6
           r_dot = int(self.radius * .05) + 1
-          x1 = int( self.centerX + (self.lookup_sin(angle) * r_dot) )
-          y1 = int( self.centerY - (self.lookup_cos(angle) * r_dot) )
-          x2 = int( self.centerX + (self.lookup_sin(angle) * (self.radius_50) ) )
-          y2 = int( self.centerY - (self.lookup_cos(angle) * (self.radius_50) ) )
+          x1 = int( self.centerX + (SinCos.lookup_sin(angle) * r_dot) )
+          y1 = int( self.centerY - (SinCos.lookup_cos(angle) * r_dot) )
+          x2 = int( self.centerX + (SinCos.lookup_sin(angle) * (self.radius_50) ) )
+          y2 = int( self.centerY - (SinCos.lookup_cos(angle) * (self.radius_50) ) )
           self.static_hour_hand = Line( x1, y1, x2, y2, self.hourColor )
         output.append( self.static_hour_hand )
 
